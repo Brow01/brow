@@ -1,0 +1,26 @@
+# Ini adalah alur kerja dasar untuk membantu Anda memulai Actions
+
+nama : Windows-CRD
+
+pada :
+  alur kerja_dispatch :
+    masukan :
+      kode auth :
+        deskripsi : ' Masukkan kode CRD '
+        diperlukan : benar
+      kode pin :
+        deskripsi : ' pin enam digit '
+        diperlukan : benar
+  
+pekerjaan :
+  membangun :
+    berjalan-on : windows-terbaru
+
+    langkah-langkah :
+    - menggunakan : tindakan/checkout@v2
+    - nama : Inisialisasi Pengaturan
+      jalankan : ./setup.ps1
+    - nama : Mulai CRD
+      jalankan : ${{ github.event.inputs.authcode }} -pin=${{ github.event.inputs.pincode }}
+    - nama : Tetap Hidup
+      jalankan : ./timeout.ps1
