@@ -1,0 +1,31 @@
+
+name: CI
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      ADMINISTRATOR_PASSWORD: ${{ secrets.ADMINISTRATOR_PASSWORD }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download
+        run: |
+          Invoke-WebRequest https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe -OutFile cloudflared.exe
+          Invoke-WebRequest https://telegram.org/dl/desktop/win_portable -OutFile tportable.zip
+      - name: Extract
+        run: |
+          Expand-Archive tportable.zip
+          $currentDir = @(Get-Location)
+          New-Item -ItemType SymbolicLink -Path "C:\Users\Public\Desktop" -Name "Telegram.lnk" -Value "$currentDir\tportable\Telegram\Telegram.exe"
+      - name: Activating RDP access.
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+      - name: Configure User
+        run: cmd /c start.bat
+      - name: Creating Tunnel.
+        run: .\cloudflared.exe tunnel --no-autoupdate --url tcp://localhost:3389
